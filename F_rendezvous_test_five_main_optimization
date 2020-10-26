@@ -4,8 +4,8 @@ clear all
 
 global A A0 N z a b cc1 cc2 cc3 d r tspan g t phii_d D
 
-N = 10;%40,80,160
-ro = 0.1; %决定通信半径的取值范围
+N = 10;
+ro = 0.1; 
 g = 9.8;
 cc1 = 1;
 cc2 = 1;
@@ -14,11 +14,11 @@ cc3 = 1;
 %case two
 %cc3 = 0;
 c = 1;
-phii_d = 3.14/6; %phii 值可控
+phii_d = 3.14/6; 
 
-a = 1; %必须是稀疏矩阵才行 a要足够小
+a = 1;
 b = 1;
-r = 0;%0.2;
+r = 0;
 
 area = (N/(4 * ro))^(1/3);
 
