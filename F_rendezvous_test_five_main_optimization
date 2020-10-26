@@ -1,0 +1,113 @@
+clc
+close all
+clear all
+
+global A A0 N z a b cc1 cc2 cc3 d r tspan g t phii_d D
+
+N = 10;%40,80,160
+ro = 0.1; %决定通信半径的取值范围
+g = 9.8;
+cc1 = 1;
+cc2 = 1;
+%case one
+cc3 = 1; 
+%case two
+%cc3 = 0;
+c = 1;
+phii_d = 3.14/6; %phii 值可控
+
+a = 1; %必须是稀疏矩阵才行 a要足够小
+b = 1;
+r = 0;%0.2;
+
+area = (N/(4 * ro))^(1/3);
+
+d_min = 2.8;%2.8
+d_max = 2.8; %8 complete graph 
+d_interval = 0.4;
+
+t0=0;
+tspan=1;  
+tf=10;
+tt=t0:tspan:tf;
+experiment_time = 1;%100
+d_number = round((d_max-d_min)/d_interval+1);
+time = zeros(experiment_time,d_number);
+time
+t1=clock
+
+k=1;
+while k<=experiment_time
+    xx0 = area * rand(N,1) - area * rand(N,1); 
+    yy0 = area * rand(N,1) - area * rand(N,1);
+    zz0 = area * rand(N,1);
+    vv0 = 0.5 * rand(N,1);  
+    thet0 = pi/2 * rand(N,1) - pi/2 * rand(N,1); 
+    phii0 = pi/2 * rand(N,1) - pi/2 * rand(N,1); 
+    z0=[xx0' yy0' zz0' vv0' thet0' phii0']';
+    B0=zeros(N,N,'int8');
+    for i=1:(N-1)
+        for j=(i+1):N
+            if d_min^2 > (xx0(i)-xx0(j))^2+(yy0(i)-yy0(j))^2+(zz0(i)-zz0(j))^2
+                B0(i,j)=1;
+                B0(j,i)=1;
+            end
+        end
+    end
+    [S,G]=concom(B0);
+    if all(G(:)==1)  %判断邻接矩阵的连通性
+        for ll=1:d_number
+            d=d_min+d_interval*(ll-1);
+            D=0.0025*d;
+            A0=zeros(N,N,'int8');
+            for i=1:(N-1)
+                for j=(i+1):N
+                    if (xx0(i)-xx0(j))^2+(yy0(i)-yy0(j))^2+(zz0(i)-zz0(j))^2 < d^2
+                        A0(i,j)=1;
+                        A0(j,i)=1;
+                    end
+                end
+            end
+            A=A0;
+            [t,z]=ode113('F_rendezvous33',tt,z0);
+            zzz=zeros(int8((tf-t0)/tspan+1),int8(N*(N-1)/2),'double');
+            for i=1:(N-1)
+                for j=(i+1):N
+                    m=(i-1)*N-i*(i+1)/2+j;
+                    zzz(:,m)=sqrt((z(:,i)-z(:,j)).^2+(z(:,(i+N))-z(:,(j+N))).^2+(z(:,(i+2*N))-z(:,(j+2*N))).^2);
+                end
+            end 
+            dis_sum = sum(zzz,2)./(N*(N-1)/2);
+            for kk=1:(tf-4)
+               if abs(dis_sum(kk)-dis_sum(tf+1))/dis_sum(tf+1) <=0.01
+                   time(k,ll)=kk;
+                   break
+               end
+            end  
+        end
+        k=k+1;
+    else
+        k=k;
+    end
+end
+
+
+time_average=zeros(d_number,1);
+eLower=zeros(d_number,1);
+eUpper=zeros(d_number,1);
+for i=1:d_number
+       tt=time(:,i);
+       tt(tt==0)=[];  %去掉矩阵中的零元素
+       time_average(i)=mean(tt);
+       eLower(i)=-std(tt)*0.5/sqrt(N);%-std(time(1:experiment_time,i))*0.5/sqrt(N);%min(time)-time_average
+       eUpper(i)=std(tt)*0.5/sqrt(N);%std(time(1:experiment_time,i))*0.5/sqrt(N);%max(time)-time_average
+end
+t2=clock;  
+etime(t2,t1)
+xlswrite('Test_Five_N160.xlsx',time) %%jiajiajia
+figure
+h = errorbar(d_min:d_interval:d_max,time_average,eLower,eUpper); 
+grid on; 
+hold on
+%print(gcf,'-djpeg','abc.jpg')
+saveas(h,'N=160.fig');  %jiajiajia
