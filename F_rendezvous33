@@ -1,0 +1,92 @@
+function dz=f_rendezvous33(t,z)  
+global A N a b cc1 cc2 cc3 d r tspan g phii_d D
+xx=z(1:N);
+yy=z((N+1):(2*N));
+zz=z((2*N+1):(3*N));
+vv=z((3*N+1):(4*N));
+thet=z((4*N+1):(5*N));
+phii=z((5*N+1):(6*N));
+
+%nearest neighbor rules
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%D=0.01/d; %this is very important
+for i=1:N
+    for j=1:N
+        if i==j
+            A(i,j)=0;
+        else
+            if (A(i,j)==0) && ((xx(i)-xx(j))^2+(yy(i)-yy(j))^2 +(zz(i)-zz(j))^2 < (d-D)^2)
+                A(i,j)=1;
+            else
+                if (A(i,j)==1) && ((xx(i)-xx(j))^2+(yy(i)-yy(j))^2+(zz(i)-zz(j))^2  < d^2)
+                    A(i,j)=1;
+                else
+                    A(i,j)=0;
+                end
+            end
+        end
+    end
+end  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+nxx=zeros(N,1);
+nyy=zeros(N,1);
+nzz=zeros(N,1);
+
+for i=1:N
+    for j=1:N
+        if A(i,j)>0   
+            fff = (xx(i) - xx(j))^2 + (yy(i) - yy(j))^2 + (zz(i) - zz(j))^2;
+            ff = 2 * a / (d^2 - fff) - 2 * b /((fff - 4.*r^2)^2);
+            
+            mmm1 = cos(phii(i)) * cos(thet(i)) * ( cc1 * (vv(i)*cos(phii(i))*cos(thet(i))-vv(j)*cos(phii(j))*cos(thet(j))) + cc2 * ff * (xx(i)-xx(j)) );
+            mmm2 = cos(phii(i)) * sin(thet(i)) * ( cc1 * (vv(i)*cos(phii(i))*sin(thet(i))-vv(j)*cos(phii(j))*sin(thet(j))) + cc2 * ff * (yy(i)-yy(j)) );
+            mmm3 =                sin(phii(i)) * ( cc1 * (vv(i)*sin(phii(i))-vv(j)*sin(phii(j))) + cc2 * ff * (zz(i)-zz(j)) );
+            
+            mm = - (mmm1 + mmm2 + mmm3) * tspan / g;
+            
+            nnn1 = - sin(thet(i)) * ( cc1 * (vv(i)*cos(phii(i))*cos(thet(i))-vv(j)*cos(phii(j))*cos(thet(j))) + cc2 * ff * (xx(i)-xx(j)) );
+            nnn2 =   cos(thet(i)) * ( cc1 * (vv(i)*cos(phii(i))*sin(thet(i))-vv(j)*cos(phii(j))*sin(thet(j))) + cc2 * ff * (yy(i)-yy(j)) );
+            nnn3 = 0;
+            
+            nn = - (nnn1 + nnn2 + nnn3) * tspan / g;
+            
+            kkk1 = - sin(phii(i)) * cos(thet(i)) * ( cc1 * (vv(i)*cos(phii(i))*cos(thet(i))-vv(j)*cos(phii(j))*cos(thet(j))) + cc2 * ff * (xx(i)-xx(j)) );
+            kkk2 = - sin(phii(i)) * sin(thet(i)) * ( cc1 * (vv(i)*cos(phii(i))*sin(thet(i))-vv(j)*cos(phii(j))*sin(thet(j))) + cc2 * ff * (yy(i)-yy(j)) );
+            kkk3 =                  cos(phii(i)) * ( cc1 * (vv(i)*sin(phii(i))-vv(j)*sin(phii(j))) + cc2 * ff * (zz(i)-zz(j)) );
+            
+            kk = - (kkk1 + kkk2 + kkk3) * tspan / g;
+        else
+            mm=0;
+            nn=0;
+            kk=0;
+        end
+        nxx(i)=nxx(i) + mm;
+        nyy(i)=nyy(i) + nn;
+        nzz(i)=nzz(i) + kk;
+    end
+    mmm10 = cos(phii(i)) * cos(thet(i)) * ( cc3 * (vv(i)*cos(phii(i))*cos(thet(i))-vv(i)*cos(phii_d)*cos(thet(i))) );
+    mmm20 = cos(phii(i)) * sin(thet(i)) * ( cc3 * (vv(i)*cos(phii(i))*sin(thet(i))-vv(i)*cos(phii_d)*sin(thet(i))) );
+    mmm30 =                sin(phii(i)) * ( cc3 * (vv(i)*sin(phii(i))-vv(i)*sin(phii_d)) - g);
+    mm0 = - (mmm10 + mmm20 + mmm30) * tspan / g;
+    nnn10 = - sin(thet(i)) * (  cc3 * (vv(i)*cos(phii(i))*cos(thet(i))-vv(i)*cos(phii_d)*cos(thet(i))) );
+    nnn20 =   cos(thet(i)) * (  cc3 * (vv(i)*cos(phii(i))*sin(thet(i))-vv(i)*cos(phii_d)*sin(thet(i))) );
+    nnn30 = 0;
+    nn0 = - (nnn10 + nnn20 + nnn30) * tspan / g;
+    kkk10 = - sin(phii(i)) * cos(thet(i)) * ( cc3 * (vv(i)*cos(phii(i))*cos(thet(i))-vv(i)*cos(phii_d)*cos(thet(i))) );
+    kkk20 = - sin(phii(i)) * sin(thet(i)) * ( cc3 * (vv(i)*cos(phii(i))*sin(thet(i))-vv(i)*cos(phii_d)*sin(thet(i))) );
+    kkk30 =                  cos(phii(i)) * ( cc3 * (vv(i)*sin(phii(i))-vv(i)*sin(phii_d)) - g); 
+    kk0 = - (kkk10 + kkk20 + kkk30) * tspan / g;
+    nxx(i)=nxx(i) + mm0;
+    nyy(i)=nyy(i) + nn0;
+    nzz(i)=nzz(i) + kk0;
+end
+
+dxx = vv.*cos(phii).*cos(thet);
+dyy = vv.*cos(phii).*sin(thet);
+dzz = vv.*sin(phii);
+dvv = g.*nxx - g.*sin(phii); 
+dthet = g.*nyy./(vv.*cos(phii));
+dphii = g.*nzz./vv - g.*cos(phii)./vv ; 
+
+t
+dz=[dxx' dyy' dzz' dvv' dthet' dphii']';
