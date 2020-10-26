@@ -7,9 +7,6 @@ vv=z((3*N+1):(4*N));
 thet=z((4*N+1):(5*N));
 phii=z((5*N+1):(6*N));
 
-%nearest neighbor rules
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%D=0.01/d; %this is very important
 for i=1:N
     for j=1:N
         if i==j
